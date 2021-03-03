@@ -1,0 +1,67 @@
+Cocoru Emilia Iuliana 322CA
+
+Pentru realizarea temei mi-am creat cele două fișiere:
+
+-server.cpp 
+	Conține implementarea server-ului ce are ca bază sheletele și rezolvările
+	mele din laboratorele 8 și 6 (cel de TCP și multiplexare I/O și cel de 
+	socheți UDP), la care am adaugat noile funcționalități necesare.
+	Pentru acestea am creat și m-am folosit de mai multe unordered_map-uri,
+	pentru am face mai ușoară căutarea, adăugarea și ștergerea de elemente.
+		- unordered_map<string, vector<string>> topic_with_clients :pentru
+		fiecare topic în parte ține
+		cont de toți clienții abonați(fie cu SF 0 sau 1).
+		- unordered_map<string, vector<string>> permanent :pentru fiecare client
+		îmi păstrează doar topicurile ale căror SF este 1.
+		- unordered_map<string, int> status_client :fiecare client poate să fie
+		activ sau offline (lucru ce îmi influențează trimiterea de mesaje)
+		- unordered_map<int, string> find_id și unordered_map<string, int> find_socket
+		:acestea păstrează o legătură între socket și id client, întrucât ele se pot
+		schimba de foarte multe ori pe parcursul rulării serverului și al clienților
+
+
+	Atunci când se conectează un socket la server se pot întâmpla următoarele situații:
+		-> socket_tcp : dau accept și este necesar să verific dacă clientul a fost
+		conectat, este conectat sau este pentru prima dată client al serverului.
+		Pentru fiecare caz în parte îmi modific sau adaug
+		instanțe noi în unordered_map-uri.
+
+		-> socket_udp: primesc mesajului de la clientul udp, pe care mi-l recepționez,
+		îl modific așa cum este menționat în cerință și imi creez un nou mesaj ce este
+		trimis mai departe la clienții TCP abonați la
+		topicul respectiv.
+
+		-> 0: primesc mesaje de la tastatură ->"exit": care îmi oprește serverul,
+		dar și clienții.
+
+		-> primesc mesaj de la client TCP:
+		: exit -> oprește conexiunea cu serverul, dar și pe a sa
+		: subscribe -> se abonează la un nou topic
+		  (adaug clientul in lista de abonati ai topicului
+		  respectiv, dar și topicul în lista de abonamente ale
+		  clientului), verific dacă este un abonament permanent
+		  și modific si lista de
+		  topicuri permanente ale acestuia dacă este necesar
+		: unsubscribe -> se dezaboneaza de la un topic.
+		  Fac ce am facut la subscribe dar cu ideea de a le scoate
+		  și de asemenea încerc să verific pe cât mai mult posibil
+		  toate cazurile de eroare.
+
+Pentru store&forward m-am folosit de fișiere așa cum a fost recomandat în cerință.
+Am incercat și cu un unordered_map ce conținea cheia id-ul, iar valoarea un vector
+de structuri ce defineau mesajul, doar că buffer-ul ajungea gol
+la client, deși era cum trebuie în server.
+
+-subscriber.cpp
+	Am plecat tot de la implementarea din laboratorul 8, iar aici când citesc
+	de la tastatură, imi împart datele într-un vector pentru a-mi fi mai ușor
+	să găsesc fiecare caz în parte(lucru pe care îl fac și în servec când recepționez
+	mesaje TCP). Analizez erorile ce pot apărea și trimit mesajul dacă totul merge bine.
+	Dacă primesc un mesaj de la server, verific să văd dacă este vreo eroare, iar în caz
+	negativ o să afișez mesajul ce era așteptat.
+
+
+
+
+
+
